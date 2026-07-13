@@ -1,6 +1,6 @@
-#include <WiFi.h>
+#include <ESP8266WiFi.h>
 #include <PubSubClient.h>
-#include <ESP32Servo.h>
+#include <Servo.h>
 
 const char* ssid = "Telecom-vmL6";
 const char* password = "j89xUchM";
@@ -11,13 +11,13 @@ const char* mqtt_server = "192.168.100.233";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-constexpr uint8_t SERVO_PIN = 25;
+const int SERVO_PIN = D1;
 
 Servo myservo;
 
 bool lightOn = true;
 
-constexpr uint8_t BTN_PIN = 13;
+const int BTN_PIN = D3;
 
 void callback(char* topic, byte* payload, unsigned int length) {
 
@@ -35,7 +35,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     lightOn = true;
   } else if (message == "OFF=" || message == "OFF")
   {
-    myservo.write(30);
+    myservo.write(90);
     lightOn = false;
   }
 }
@@ -99,7 +99,7 @@ void setup() {
 void moveServo(){
 
   if (lightOn){
-    myservo.write(30);
+    myservo.write(90);
     lightOn = false;
   } else if (!lightOn) {
     myservo.write(0);
