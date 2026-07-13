@@ -8,6 +8,9 @@ const char* password = WIFI_PASSWORD;
 
 const char* mqtt_server = MQTT_SERVER; 
 
+constexpr int LIGHT_ON_ANGLE = 0;
+constexpr int LIGHT_OFF_ANGLE = 90;
+constexpr int SERVO_MOVE_TIME = 500;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -33,7 +36,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   if (message == "ON=" || message == "ON") {
     myservo.attach(SERVO_PIN);
-    myservo.write(0);
+    myservo.write(LIGHT_ON_ANGLE);
     lightOn = true;
     delay(500); 
     myservo.detach();
@@ -41,7 +44,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   } else if (message == "OFF=" || message == "OFF")
   {
     myservo.attach(SERVO_PIN);
-    myservo.write(90);
+    myservo.write(LIGHT_OFF_ANGLE);
     lightOn = false;
     delay(500); 
     myservo.detach();
@@ -56,11 +59,21 @@ void reconnect() {
 
     Serial.print("Connecting MQTT...");
 
-    if (client.connect("ESP32-WallE")) {
+    if (client.connect("SmartRoom-Light")) {
 
       Serial.println("connected");
 
       client.subscribe("home/command");
+
+
+      //LED to confirm setup is complete
+      for (int i = 0; i < 4; i++){
+        digitalWrite(LED_BUILTIN, LOW);   // ON
+        delay(100);
+
+        digitalWrite(LED_BUILTIN, HIGH);  // OFF
+        delay(100);
+      }
 
     } else {
 
@@ -75,6 +88,7 @@ void reconnect() {
 void setup() {
   Serial.begin(115200);
   pinMode(BTN_PIN, INPUT_PULLUP);
+  pinMode(LED_BUILTIN, OUTPUT);
 
   WiFi.mode(WIFI_STA);
   WiFi.disconnect(true);
@@ -94,9 +108,12 @@ void setup() {
     ESP.restart();
   }
 
-  // myservo.attach(SERVO_PIN);
-  myservo.write(0);
+  myservo.attach(SERVO_PIN);
+  myservo.write(LIGHT_ON_ANGLE);
   lightOn = true;
+  delay(500); 
+  myservo.detach();
+
   Serial.println("\nWiFi connected");
   Serial.println(WiFi.localIP());
 
@@ -109,13 +126,13 @@ void moveServo(){
 
   if (lightOn){
     myservo.attach(SERVO_PIN);
-    myservo.write(90);
+    myservo.write(LIGHT_OFF_ANGLE);
     delay(500); 
     myservo.detach();
     lightOn = false;
   } else if (!lightOn) {
     myservo.attach(SERVO_PIN);
-    myservo.write(0);
+    myservo.write(LIGHT_ON_ANGLE);
     delay(500); 
     myservo.detach();
     lightOn = true;
