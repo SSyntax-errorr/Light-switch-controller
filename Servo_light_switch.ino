@@ -31,12 +31,20 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println(message);
 
   if (message == "ON=" || message == "ON") {
+    myservo.attach(SERVO_PIN);
     myservo.write(0);
     lightOn = true;
+    delay(500); 
+    myservo.detach();
+
   } else if (message == "OFF=" || message == "OFF")
   {
+    myservo.attach(SERVO_PIN);
     myservo.write(90);
     lightOn = false;
+    delay(500); 
+    myservo.detach();
+
   }
 }
 
@@ -85,7 +93,7 @@ void setup() {
     ESP.restart();
   }
 
-  myservo.attach(SERVO_PIN);
+  // myservo.attach(SERVO_PIN);
   myservo.write(0);
   lightOn = true;
   Serial.println("\nWiFi connected");
@@ -99,10 +107,16 @@ void setup() {
 void moveServo(){
 
   if (lightOn){
+    myservo.attach(SERVO_PIN);
     myservo.write(90);
+    delay(500); 
+    myservo.detach();
     lightOn = false;
   } else if (!lightOn) {
+    myservo.attach(SERVO_PIN);
     myservo.write(0);
+    delay(500); 
+    myservo.detach();
     lightOn = true;
   } else {
     Serial.print("fuck you");
@@ -120,7 +134,7 @@ void loop() {
   if (currentButtonState == LOW && lastButtonState == HIGH) {
     Serial.print("fuck you!");
     moveServo();
-    delay(50); 
+    delay(100); 
   }
 
   lastButtonState = currentButtonState;
