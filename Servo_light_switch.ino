@@ -1,12 +1,13 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <Servo.h>
+#include "secrets.h"
 
-const char* ssid = "Telecom-vmL6";
-const char* password = "j89xUchM";
+const char* ssid = WIFI_SSID;
+const char* password = WIFI_PASSWORD;
 
-const char* mqtt_server = "192.168.100.233"; 
-// Example: 192.168.1.50
+const char* mqtt_server = MQTT_SERVER; 
+
 
 WiFiClient espClient;
 PubSubClient client(espClient);
