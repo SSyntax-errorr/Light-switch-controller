@@ -1,16 +1,23 @@
 #include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#include <ESP8266httpUpdate.h>
 #include <PubSubClient.h>
 #include <Servo.h>
 #include "secrets.h"
+#include "update.h"
 
 const char* ssid = WIFI_SSID;
 const char* password = WIFI_PASSWORD;
+
+// const char* server_ip = SERVER_IP;
 
 const char* mqtt_server = MQTT_SERVER; 
 
 constexpr int LIGHT_ON_ANGLE = 0;
 constexpr int LIGHT_OFF_ANGLE = 90;
 constexpr int SERVO_MOVE_TIME = 500;
+
+
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -23,6 +30,10 @@ bool lightOn = true;
 
 const int BTN_PIN = D3;
 
+
+
+
+
 void callback(char* topic, byte* payload, unsigned int length) {
 
   String message = "";
@@ -33,7 +44,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   Serial.print("Received: ");
   Serial.println(message);
-
+  blink();
   if (message == "ON=" || message == "ON") {
     myservo.attach(SERVO_PIN);
     myservo.write(LIGHT_ON_ANGLE);
@@ -85,11 +96,14 @@ void reconnect() {
   }
 }
 
+
+
 void setup() {
   Serial.begin(115200);
+  // Serial.print("Update was successful!!!");
   pinMode(BTN_PIN, INPUT_PULLUP);
   pinMode(LED_BUILTIN, OUTPUT);
-
+  // attachInterrupt(BTN_PIN, moveServo, LOW);
   WiFi.mode(WIFI_STA);
   WiFi.disconnect(true);
   delay(1000);
@@ -108,6 +122,10 @@ void setup() {
     ESP.restart();
   }
 
+
+  checkForUpdates();
+
+
   myservo.attach(SERVO_PIN);
   myservo.write(LIGHT_ON_ANGLE);
   lightOn = true;
@@ -119,15 +137,33 @@ void setup() {
 
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
+
+
+
+
+  // moveServoTest();
 }
 
+
+void moveServoTest() {
+    myservo.attach(SERVO_PIN);
+    Serial.print("Testing servo!!");
+    while (true) {
+        myservo.write(0);
+        delay(1000);
+
+        myservo.write(90);
+        delay(1000);
+    }
+}
 
 void moveServo(){
 
   if (lightOn){
     myservo.attach(SERVO_PIN);
+    delay(50);
     myservo.write(LIGHT_OFF_ANGLE);
-    delay(500); 
+    delay(500);
     myservo.detach();
     lightOn = false;
   } else if (!lightOn) {
@@ -137,29 +173,53 @@ void moveServo(){
     myservo.detach();
     lightOn = true;
   } else {
-    Serial.print("fuck you");
+    Serial.print("If this line somehow was reached just kys at this point.");
   }
 
 }
 
 
 bool lastButtonState = HIGH;
+bool checked = false;
+
+
+void blink() {
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(500);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(500);
+}
+
 
 void loop() {
 
   bool currentButtonState = digitalRead(BTN_PIN);
+  if (currentButtonState == LOW ){
+    Serial.print("xxxx");
+  }
 
+  
   if (currentButtonState == LOW && lastButtonState == HIGH) {
     Serial.print("fuck you!");
-    moveServo();
     delay(100); 
+    blink();
+    blink();
+    blink();
+    moveServo();
+    
+  } else {
+    // Serial.print("xxx");
   }
 
   lastButtonState = currentButtonState;
 
+
+
   if (!client.connected()) {
     reconnect();
   }
+
+
 
   client.loop();
 }
