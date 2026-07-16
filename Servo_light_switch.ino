@@ -5,11 +5,8 @@
 #include <Servo.h>
 #include "secrets.h"
 #include "update.h"
+#include "wifi.h"
 
-const char* ssid = WIFI_SSID;
-const char* password = WIFI_PASSWORD;
-
-// const char* server_ip = SERVER_IP;
 
 const char* mqtt_server = MQTT_SERVER; 
 
@@ -104,23 +101,9 @@ void setup() {
   pinMode(BTN_PIN, INPUT_PULLUP);
   pinMode(LED_BUILTIN, OUTPUT);
   // attachInterrupt(BTN_PIN, moveServo, LOW);
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect(true);
-  delay(1000);
 
-  WiFi.begin(ssid, password);
 
-  int tries = 0;
-  while (WiFi.status() != WL_CONNECTED && tries < 30) {
-    delay(500);
-    Serial.printf("Status: %d\n", WiFi.status());
-    tries++;
-  }
-
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi failed, restarting...");
-    ESP.restart();
-  }
+  connectWifi();
 
 
   checkForUpdates();
@@ -132,8 +115,7 @@ void setup() {
   delay(500); 
   myservo.detach();
 
-  Serial.println("\nWiFi connected");
-  Serial.println(WiFi.localIP());
+
 
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
